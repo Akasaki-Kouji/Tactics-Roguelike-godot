@@ -37,7 +37,8 @@ func create_unit(unit_name: String, hp: int, atk: int, def_val: int, res: int, s
 		"lck": lck,
 		"is_player": is_player,
 		"cards": [],
-		"has_acted": false
+		"has_acted": false,
+		"has_moved": false
 	}
 
 func start_new_game(difficulty: Difficulty):
@@ -77,6 +78,7 @@ func next_stage():
 		if unit.is_player and unit.hp > 0:
 			unit.hp = unit.max_hp
 			unit.has_acted = false
+			unit.has_moved = false
 
 	# 敵ユニットを削除して新しい敵を生成
 	var player_units = []

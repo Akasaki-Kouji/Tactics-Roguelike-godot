@@ -172,6 +172,8 @@ func _on_tile_pressed(pos: Vector2i):
 		if unit_index == null and pos in move_range_tiles:
 			move_unit(selected_unit, pos)
 			selected_tile = pos  # 移動後の位置を更新
+			# 移動済みフラグを設定
+			game_manager.units[selected_unit].has_moved = true
 			clear_ranges()
 			current_action_mode = ActionMode.NONE
 			# 移動後も選択を維持（攻撃できるように）
@@ -258,8 +260,9 @@ func update_action_buttons():
 		attack_btn.disabled = true
 		wait_btn.disabled = true
 	else:
-		# ユニット選択時は有効化
-		move_btn.disabled = false
+		var unit = game_manager.units[selected_unit]
+		# 移動済みの場合は移動ボタンを無効化
+		move_btn.disabled = unit.has_moved
 		attack_btn.disabled = false
 		wait_btn.disabled = false
 
@@ -447,6 +450,7 @@ func enemy_turn():
 	# プレイヤーターン再開
 	for unit in game_manager.units:
 		unit.has_acted = false
+		unit.has_moved = false
 
 	update_display()
 	print("プレイヤーターン")
