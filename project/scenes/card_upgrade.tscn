@@ -50,17 +50,17 @@ alignment = 1
 [node name="Card1" type="Button" parent="VBoxContainer/CardContainer"]
 custom_minimum_size = Vector2(150, 200)
 layout_mode = 2
-text = "カード1"
+text = ""
 
 [node name="Card2" type="Button" parent="VBoxContainer/CardContainer"]
 custom_minimum_size = Vector2(150, 200)
 layout_mode = 2
-text = "カード2"
+text = ""
 
 [node name="Card3" type="Button" parent="VBoxContainer/CardContainer"]
 custom_minimum_size = Vector2(150, 200)
 layout_mode = 2
-text = "カード3"
+text = ""
 
 [node name="Spacer2" type="Control" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 20)
