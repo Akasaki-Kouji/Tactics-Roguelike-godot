@@ -20,9 +20,36 @@ func reset_units():
 	# プレイヤーユニット2体（攻撃力を大幅に強化）
 	units.append(create_unit("騎士", 25, 25, 6, 5, 7, 8, 5, true))
 	units.append(create_unit("剣士", 20, 25, 4, 3, 9, 10, 7, true))
-	# 敵ユニット2体
-	units.append(create_unit("敵兵士", 18, 6, 5, 4, 6, 7, 4, false))
-	units.append(create_unit("敵盗賊", 16, 5, 3, 2, 8, 9, 6, false))
+
+	# 難易度に応じて敵のステータスを調整
+	var difficulty_multiplier = 1.0
+	match current_difficulty:
+		Difficulty.EASY:
+			difficulty_multiplier = 0.7  # -30%
+		Difficulty.NORMAL:
+			difficulty_multiplier = 1.0  # 標準
+		Difficulty.HARD:
+			difficulty_multiplier = 1.5  # +50%
+
+	# 敵ユニット2体（難易度補正適用）
+	var soldier_hp = int(18 * difficulty_multiplier)
+	var soldier_atk = int(6 * difficulty_multiplier)
+	var soldier_def = int(5 * difficulty_multiplier)
+	var soldier_res = int(4 * difficulty_multiplier)
+	var soldier_spd = int(6 * difficulty_multiplier)
+	var soldier_dex = int(7 * difficulty_multiplier)
+	var soldier_lck = int(4 * difficulty_multiplier)
+
+	var thief_hp = int(16 * difficulty_multiplier)
+	var thief_atk = int(5 * difficulty_multiplier)
+	var thief_def = int(3 * difficulty_multiplier)
+	var thief_res = int(2 * difficulty_multiplier)
+	var thief_spd = int(8 * difficulty_multiplier)
+	var thief_dex = int(9 * difficulty_multiplier)
+	var thief_lck = int(6 * difficulty_multiplier)
+
+	units.append(create_unit("敵兵士", soldier_hp, soldier_atk, soldier_def, soldier_res, soldier_spd, soldier_dex, soldier_lck, false))
+	units.append(create_unit("敵盗賊", thief_hp, thief_atk, thief_def, thief_res, thief_spd, thief_dex, thief_lck, false))
 
 func create_unit(unit_name: String, hp: int, atk: int, def_val: int, res: int, spd: int, dex: int, lck: int, is_player: bool) -> Dictionary:
 	return {
@@ -89,6 +116,16 @@ func next_stage():
 	units.clear()
 	units = player_units.duplicate()
 
+	# 難易度に応じた基礎倍率
+	var difficulty_multiplier = 1.0
+	match current_difficulty:
+		Difficulty.EASY:
+			difficulty_multiplier = 0.7  # -30%
+		Difficulty.NORMAL:
+			difficulty_multiplier = 1.0  # 標準
+		Difficulty.HARD:
+			difficulty_multiplier = 1.5  # +50%
+
 	# ステージに応じて敵を強化
 	var enemy_boost = (current_stage - 1) * 3  # ステージごとに全ステータス+3
 
@@ -97,8 +134,22 @@ func next_stage():
 
 	for i in range(enemy_count):
 		if i % 2 == 0:
-			units.append(create_unit("敵兵士Lv%d" % current_stage, 18 + enemy_boost, 6 + enemy_boost, 5 + enemy_boost, 4 + enemy_boost, 6 + enemy_boost, 7 + enemy_boost, 4 + enemy_boost, false))
+			var base_hp = int((18 + enemy_boost) * difficulty_multiplier)
+			var base_atk = int((6 + enemy_boost) * difficulty_multiplier)
+			var base_def = int((5 + enemy_boost) * difficulty_multiplier)
+			var base_res = int((4 + enemy_boost) * difficulty_multiplier)
+			var base_spd = int((6 + enemy_boost) * difficulty_multiplier)
+			var base_dex = int((7 + enemy_boost) * difficulty_multiplier)
+			var base_lck = int((4 + enemy_boost) * difficulty_multiplier)
+			units.append(create_unit("敵兵士Lv%d" % current_stage, base_hp, base_atk, base_def, base_res, base_spd, base_dex, base_lck, false))
 		else:
-			units.append(create_unit("敵盗賊Lv%d" % current_stage, 16 + enemy_boost, 5 + enemy_boost, 3 + enemy_boost, 2 + enemy_boost, 8 + enemy_boost, 9 + enemy_boost, 6 + enemy_boost, false))
+			var base_hp = int((16 + enemy_boost) * difficulty_multiplier)
+			var base_atk = int((5 + enemy_boost) * difficulty_multiplier)
+			var base_def = int((3 + enemy_boost) * difficulty_multiplier)
+			var base_res = int((2 + enemy_boost) * difficulty_multiplier)
+			var base_spd = int((8 + enemy_boost) * difficulty_multiplier)
+			var base_dex = int((9 + enemy_boost) * difficulty_multiplier)
+			var base_lck = int((6 + enemy_boost) * difficulty_multiplier)
+			units.append(create_unit("敵盗賊Lv%d" % current_stage, base_hp, base_atk, base_def, base_res, base_spd, base_dex, base_lck, false))
 
 	get_tree().change_scene_to_file("res://scenes/battle.tscn")

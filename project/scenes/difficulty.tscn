@@ -66,6 +66,13 @@ alignment = 1
 layout_mode = 2
 text = ">"
 
+[node name="DescriptionLabel" type="Label" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "標準的な難易度"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Spacer2" type="Control" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
