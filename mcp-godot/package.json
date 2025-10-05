@@ -1,0 +1,23 @@
+{
+  "name": "mcp-godot",
+  "version": "1.0.0",
+  "description": "MCP server for Godot headless execution",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "mcp-godot": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "mcp",
+    "godot",
+    "headless"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
