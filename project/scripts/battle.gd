@@ -422,7 +422,7 @@ func _on_end_turn_pressed():
 func enemy_turn():
 	print("敵ターン開始")
 
-	# 簡易AI: 近くのプレイヤーを攻撃
+	# 改善されたAI: 移動してから攻撃
 	for i in range(game_manager.units.size()):
 		var unit = game_manager.units[i]
 		if not unit.is_player and unit.hp > 0:
@@ -430,9 +430,10 @@ func enemy_turn():
 			if enemy_pos == null:
 				continue
 
-			# 最も近いプレイヤーユニットを探す
-			var nearest_player = null
-			var nearest_distance = 999
+			# 最適なターゲットを見つける（HPが低い順）
+			var best_target = null
+			var best_target_pos = null
+			var best_priority = -999
 
 			for j in range(game_manager.units.size()):
 				var player = game_manager.units[j]
@@ -440,13 +441,42 @@ func enemy_turn():
 					var player_pos = unit_positions.get(j)
 					if player_pos == null:
 						continue
-					var dist = abs(enemy_pos.x - player_pos.x) + abs(enemy_pos.y - player_pos.y)
-					if dist < nearest_distance:
-						nearest_distance = dist
-						nearest_player = j
 
-			if nearest_player != null and nearest_distance == 1:
-				attack_unit(i, nearest_player)
+					var dist = abs(enemy_pos.x - player_pos.x) + abs(enemy_pos.y - player_pos.y)
+					# 優先度: HPが低い敵を優先、距離が近い敵を優先
+					var priority = (100 - player.hp) - dist * 5
+
+					if priority > best_priority:
+						best_priority = priority
+						best_target = j
+						best_target_pos = player_pos
+
+			if best_target == null:
+				continue
+
+			var current_dist = abs(enemy_pos.x - best_target_pos.x) + abs(enemy_pos.y - best_target_pos.y)
+
+			# 攻撃範囲内にいる場合は攻撃
+			if current_dist <= ATTACK_RANGE:
+				print("敵%s が攻撃" % unit.name)
+				attack_unit(i, best_target)
+				await get_tree().create_timer(0.5).timeout
+			else:
+				# 攻撃範囲外の場合は移動
+				var move_target = find_best_move_position(enemy_pos, best_target_pos)
+				if move_target != null and move_target != enemy_pos:
+					print("敵%s が移動: %s -> %s" % [unit.name, enemy_pos, move_target])
+					move_unit(i, move_target)
+					enemy_pos = move_target
+					await get_tree().create_timer(0.3).timeout
+					update_display()
+
+					# 移動後、攻撃範囲内なら攻撃
+					var new_dist = abs(enemy_pos.x - best_target_pos.x) + abs(enemy_pos.y - best_target_pos.y)
+					if new_dist <= ATTACK_RANGE:
+						print("敵%s が移動後攻撃" % unit.name)
+						attack_unit(i, best_target)
+						await get_tree().create_timer(0.5).timeout
 
 	# プレイヤーターン再開
 	for unit in game_manager.units:
@@ -455,3 +485,35 @@ func enemy_turn():
 
 	update_display()
 	print("プレイヤーターン")
+
+func find_best_move_position(from_pos: Vector2i, target_pos: Vector2i) -> Vector2i:
+	# ターゲットに近づく最適な移動先を見つける
+	var best_pos = from_pos
+	var best_distance = abs(from_pos.x - target_pos.x) + abs(from_pos.y - target_pos.y)
+
+	# 移動範囲内の全タイルをチェック
+	for dy in range(-MOVE_RANGE, MOVE_RANGE + 1):
+		for dx in range(-MOVE_RANGE, MOVE_RANGE + 1):
+			var move_dist = abs(dx) + abs(dy)
+			if move_dist > MOVE_RANGE or move_dist == 0:
+				continue
+
+			var new_pos = Vector2i(from_pos.x + dx, from_pos.y + dy)
+
+			# グリッド範囲内かチェック
+			if new_pos.x < 0 or new_pos.x >= GRID_SIZE or new_pos.y < 0 or new_pos.y >= GRID_SIZE:
+				continue
+
+			# 空きマスかチェック
+			if grid[new_pos.y][new_pos.x] != null:
+				continue
+
+			# ターゲットまでの距離を計算
+			var distance = abs(new_pos.x - target_pos.x) + abs(new_pos.y - target_pos.y)
+
+			# より近い位置を選択
+			if distance < best_distance:
+				best_distance = distance
+				best_pos = new_pos
+
+	return best_pos
