@@ -98,6 +98,7 @@ func create_tile(x: int, y: int) -> Button:
 
 	var is_move_range = pos in move_range_tiles
 	var is_attack_range = pos in attack_range_tiles
+	var is_selected = (pos == selected_tile)
 
 	# StyleBoxFlat を使って背景色を設定
 	var style = StyleBoxFlat.new()
@@ -114,6 +115,15 @@ func create_tile(x: int, y: int) -> Button:
 		bg_color = Color(0.9, 0.2, 0.2)  # 鮮やかな赤
 
 	style.bg_color = bg_color
+
+	# 選択されたタイルには明るい青色の太い枠線を追加
+	if is_selected:
+		style.border_width_left = 4
+		style.border_width_right = 4
+		style.border_width_top = 4
+		style.border_width_bottom = 4
+		style.border_color = Color(0.3, 0.7, 1.0)  # 明るい青
+
 	button.add_theme_stylebox_override("normal", style)
 	button.add_theme_stylebox_override("hover", style)
 	button.add_theme_stylebox_override("pressed", style)
