@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(findstr:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(curl:*)",
+      "Bash(tasklist)",
+      "Bash(netstat:*)",
+      "Bash(tasklist:*)",
+      "Bash(wmic process:*)",
+      "Bash(claude mcp:*)",
+      "Bash(powershell:*)",
+      "Read(//c/Users/soumu/OneDrive/ドキュメント/UnityMCP/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
