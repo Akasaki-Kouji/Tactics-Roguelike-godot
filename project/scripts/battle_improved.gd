@@ -27,6 +27,8 @@ const TERRAIN_TYPES = {
 		"evasion": 0,
 		"defense": 0,
 		"walkable": true,
+		"projectile_block": false,
+		"vision_block": false,
 		"color": Color(0.70, 0.68, 0.65),
 		"icon": "◇",
 		"desc": "平坦な地形"
@@ -38,6 +40,8 @@ const TERRAIN_TYPES = {
 		"evasion": 0,
 		"defense": 0,
 		"walkable": true,
+		"projectile_block": false,
+		"vision_block": false,
 		"color": Color(0.60, 0.55, 0.50),
 		"icon": "=",
 		"desc": "移動しやすい舗装路"
@@ -49,6 +53,8 @@ const TERRAIN_TYPES = {
 		"evasion": 15,
 		"defense": 1,
 		"walkable": true,
+		"projectile_block": false,
+		"vision_block": false,
 		"color": Color(0.30, 0.55, 0.30),
 		"icon": "♠",
 		"desc": "回避+15 防御+1"
@@ -60,6 +66,9 @@ const TERRAIN_TYPES = {
 		"evasion": -10,
 		"defense": 0,
 		"walkable": true,
+		"projectile_block": false,
+		"vision_block": false,
+		"wet": true,
 		"color": Color(0.45, 0.50, 0.40),
 		"icon": "~",
 		"desc": "移動困難 回避-10"
@@ -71,6 +80,8 @@ const TERRAIN_TYPES = {
 		"evasion": 10,
 		"defense": 2,
 		"walkable": true,
+		"projectile_block": false,
+		"vision_block": false,
 		"color": Color(0.65, 0.55, 0.45),
 		"icon": "△",
 		"desc": "高度+1 回避+10 防御+2"
@@ -82,9 +93,41 @@ const TERRAIN_TYPES = {
 		"evasion": 0,
 		"defense": 0,
 		"walkable": false,
+		"projectile_block": true,
+		"vision_block": true,
 		"color": Color(0.25, 0.25, 0.28),
 		"icon": "█",
 		"desc": "通行不可"
+	},
+	"fire": {
+		"name": "炎",
+		"move_cost": 2,
+		"height": 0,
+		"evasion": 0,
+		"defense": 0,
+		"walkable": true,
+		"projectile_block": false,
+		"vision_block": false,
+		"hazard": "fire",
+		"flammable": false,
+		"color": Color(0.90, 0.35, 0.15),
+		"icon": "🔥",
+		"desc": "ターン終了時2ダメージ"
+	},
+	"poison": {
+		"name": "毒沼",
+		"move_cost": 3,
+		"height": 0,
+		"evasion": -10,
+		"defense": 0,
+		"walkable": true,
+		"projectile_block": false,
+		"vision_block": false,
+		"hazard": "poison",
+		"wet": true,
+		"color": Color(0.50, 0.30, 0.50),
+		"icon": "☠",
+		"desc": "ターン終了時1ダメージ"
 	}
 }
 
@@ -97,6 +140,8 @@ var unit_positions = {}
 var move_range_tiles = []
 var attack_range_tiles = []
 var hovered_tile = null  # For tooltip
+var danger_zone_tiles = []  # Enemy attack ranges
+var show_danger_zone = false  # Toggle danger zone visibility
 
 enum ActionMode { NONE, MOVE, ATTACK }
 var current_action_mode = ActionMode.NONE
@@ -141,6 +186,10 @@ func _input(event):
 	elif event.is_action_pressed("action_wait"):  # W
 		if not $MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin/ActionGrid/WaitButton.disabled:
 			_on_wait_button_pressed()
+	elif event.is_action_pressed("toggle_danger"):  # D key
+		show_danger_zone = not show_danger_zone
+		calculate_danger_zones()
+		update_display()
 
 func setup_input_actions():
 	# Define input actions programmatically if not in InputMap
@@ -167,6 +216,12 @@ func setup_input_actions():
 		var key = InputEventKey.new()
 		key.keycode = KEY_W
 		InputMap.action_add_event("action_wait", key)
+
+	if not InputMap.has_action("toggle_danger"):
+		InputMap.add_action("toggle_danger")
+		var key = InputEventKey.new()
+		key.keycode = KEY_D
+		InputMap.action_add_event("toggle_danger", key)
 
 func update_info_bar():
 	$MainLayout/InfoBar/InfoBarMargin/InfoBarContent/TurnLabel.text = "ターン %d" % current_turn
@@ -196,15 +251,15 @@ func setup_terrain_map():
 			["plains", "road", "forest", "forest", "forest", "forest", "road", "plains"],
 			["plains", "road", "road", "plains", "plains", "road", "road", "plains"]
 		],
-		# Map 1: Hills and swamps
+		# Map 1: Hills and swamps with hazards
 		[
 			["plains", "plains", "swamp", "swamp", "plains", "plains", "plains", "plains"],
-			["plains", "hill", "swamp", "swamp", "plains", "hill", "plains", "plains"],
-			["plains", "hill", "plains", "plains", "plains", "hill", "hill", "plains"],
+			["plains", "hill", "poison", "swamp", "plains", "hill", "plains", "plains"],
+			["plains", "hill", "plains", "fire", "plains", "hill", "hill", "plains"],
 			["plains", "plains", "plains", "plains", "plains", "plains", "hill", "plains"],
 			["plains", "plains", "plains", "plains", "plains", "plains", "plains", "plains"],
-			["plains", "hill", "hill", "plains", "plains", "plains", "hill", "plains"],
-			["plains", "hill", "plains", "plains", "swamp", "swamp", "hill", "plains"],
+			["plains", "hill", "hill", "plains", "fire", "plains", "hill", "plains"],
+			["plains", "hill", "plains", "plains", "poison", "swamp", "hill", "plains"],
 			["plains", "plains", "plains", "plains", "swamp", "swamp", "plains", "plains"]
 		],
 		# Map 2: Fortress with walls
@@ -293,6 +348,7 @@ func create_tile(x: int, y: int) -> Button:
 	var is_move_range = pos in move_range_tiles
 	var is_attack_range = pos in attack_range_tiles
 	var is_selected = (pos == selected_tile)
+	var is_danger_zone = show_danger_zone and (pos in danger_zone_tiles)
 
 	# Medieval stone tile style with terrain colors
 	var style = StyleBoxFlat.new()
@@ -311,6 +367,10 @@ func create_tile(x: int, y: int) -> Button:
 	elif is_attack_range:
 		# Red glow for attack range
 		bg_color = COLOR_ATTACK
+		style.draw_center = true
+	elif is_danger_zone:
+		# Orange pattern for enemy danger zones
+		bg_color = bg_color.lerp(COLOR_DANGER, 0.4)
 		style.draw_center = true
 
 	style.bg_color = bg_color
@@ -601,6 +661,7 @@ func calculate_move_range(from_pos: Vector2i):
 			move_range_tiles.append(pos)
 
 func calculate_attack_range(from_pos: Vector2i):
+	"""Calculate attack range with line-of-sight check"""
 	attack_range_tiles.clear()
 
 	for dy in range(-ATTACK_RANGE, ATTACK_RANGE + 1):
@@ -608,7 +669,38 @@ func calculate_attack_range(from_pos: Vector2i):
 			if abs(dx) + abs(dy) <= ATTACK_RANGE and abs(dx) + abs(dy) > 0:
 				var attack_pos = Vector2i(from_pos.x + dx, from_pos.y + dy)
 				if attack_pos.x >= 0 and attack_pos.x < GRID_SIZE and attack_pos.y >= 0 and attack_pos.y < GRID_SIZE:
-					attack_range_tiles.append(attack_pos)
+					# Check line of sight
+					if has_line_of_sight(from_pos, attack_pos):
+						attack_range_tiles.append(attack_pos)
+
+func has_line_of_sight(from: Vector2i, to: Vector2i) -> bool:
+	"""Bresenham line algorithm with projectile_block check"""
+	var dx = abs(to.x - from.x)
+	var dy = abs(to.y - from.y)
+	var sx = 1 if from.x < to.x else -1
+	var sy = 1 if from.y < to.y else -1
+	var err = dx - dy
+
+	var current = from
+
+	while current != to:
+		var e2 = err * 2
+
+		if e2 > -dy:
+			err -= dy
+			current.x += sx
+
+		if e2 < dx:
+			err += dx
+			current.y += sy
+
+		# Check if blocked (except the target tile)
+		if current != to:
+			var terrain = get_terrain(current)
+			if terrain.get("projectile_block", false):
+				return false
+
+	return true
 
 func clear_ranges():
 	move_range_tiles.clear()
@@ -779,6 +871,8 @@ func check_battle_end():
 		get_tree().change_scene_to_file("res://scenes/game_over_improved.tscn")
 
 func _on_end_turn_pressed():
+	# Resolve hazards for player units
+	resolve_hazards(true)
 	enemy_turn()
 
 func enemy_turn():
@@ -834,6 +928,9 @@ func enemy_turn():
 						attack_unit(i, best_target)
 						await get_tree().create_timer(0.5).timeout
 
+	# Resolve hazards for enemy units
+	resolve_hazards(false)
+
 	for unit in game_manager.units:
 		unit.has_acted = false
 		unit.has_moved = false
@@ -844,6 +941,7 @@ func enemy_turn():
 func find_best_move_position(from_pos: Vector2i, target_pos: Vector2i) -> Vector2i:
 	var best_pos = from_pos
 	var best_distance = abs(from_pos.x - target_pos.x) + abs(from_pos.y - target_pos.y)
+	var best_score = -9999.0
 
 	for dy in range(-MOVE_RANGE, MOVE_RANGE + 1):
 		for dx in range(-MOVE_RANGE, MOVE_RANGE + 1):
@@ -861,8 +959,98 @@ func find_best_move_position(from_pos: Vector2i, target_pos: Vector2i) -> Vector
 
 			var distance = abs(new_pos.x - target_pos.x) + abs(new_pos.y - target_pos.y)
 
-			if distance < best_distance:
-				best_distance = distance
+			# AI evaluation with hazard avoidance
+			var score = -distance * 10.0  # Closer is better
+
+			var terrain = get_terrain(new_pos)
+			var hazard = terrain.get("hazard", null)
+
+			if hazard != null:
+				# Penalize hazardous terrain
+				match hazard:
+					"fire":
+						score -= 30  # Avoid fire heavily
+					"poison":
+						score -= 20  # Avoid poison moderately
+				print("AI評価: %s - ハザード回避 %s (score: %d)" % [new_pos, hazard, int(score)])
+
+			# Prefer high ground
+			if terrain.height > 0:
+				score += terrain.height * 5
+
+			if score > best_score:
+				best_score = score
 				best_pos = new_pos
+				best_distance = distance
 
 	return best_pos
+
+func resolve_hazards(is_player_phase: bool):
+	"""Resolve hazard damage at end of turn"""
+	print("ハザード解決フェーズ")
+
+	for i in range(game_manager.units.size()):
+		var unit = game_manager.units[i]
+
+		# Only process units of current phase
+		if unit.is_player != is_player_phase:
+			continue
+
+		if unit.hp <= 0:
+			continue
+
+		var pos = unit_positions.get(i)
+		if pos == null:
+			continue
+
+		var terrain = get_terrain(pos)
+		var hazard = terrain.get("hazard", null)
+
+		if hazard != null:
+			var damage = 0
+
+			match hazard:
+				"fire":
+					damage = 2
+					print("%s は炎でダメージを受けた！ (2ダメージ)" % unit.name)
+				"poison":
+					damage = 1
+					print("%s は毒でダメージを受けた！ (1ダメージ)" % unit.name)
+				"ice":
+					# Ice could slow down next turn
+					damage = 1
+					print("%s は凍結でダメージを受けた！ (1ダメージ)" % unit.name)
+
+			if damage > 0:
+				unit.hp -= damage
+				await get_tree().create_timer(0.3).timeout
+
+				if unit.hp <= 0:
+					print("%s はハザードで倒れた..." % unit.name)
+					grid[pos.y][pos.x] = null
+					unit_positions.erase(i)
+
+	update_display()
+	check_battle_end()
+
+func calculate_danger_zones():
+	"""Calculate all enemy attack ranges for danger zone display"""
+	danger_zone_tiles.clear()
+
+	if not show_danger_zone:
+		return
+
+	for i in range(game_manager.units.size()):
+		var unit = game_manager.units[i]
+		if not unit.is_player and unit.hp > 0:
+			var pos = unit_positions.get(i)
+			if pos != null:
+				# Calculate enemy attack range
+				for dy in range(-ATTACK_RANGE, ATTACK_RANGE + 1):
+					for dx in range(-ATTACK_RANGE, ATTACK_RANGE + 1):
+						if abs(dx) + abs(dy) <= ATTACK_RANGE and abs(dx) + abs(dy) > 0:
+							var attack_pos = Vector2i(pos.x + dx, pos.y + dy)
+							if attack_pos.x >= 0 and attack_pos.x < GRID_SIZE and attack_pos.y >= 0 and attack_pos.y < GRID_SIZE:
+								if has_line_of_sight(pos, attack_pos):
+									if attack_pos not in danger_zone_tiles:
+										danger_zone_tiles.append(attack_pos)
