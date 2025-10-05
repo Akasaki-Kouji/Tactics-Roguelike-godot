@@ -10,7 +10,8 @@
       "Bash(wmic process:*)",
       "Bash(claude mcp:*)",
       "Bash(powershell:*)",
-      "Read(//c/Users/soumu/OneDrive/ドキュメント/UnityMCP/**)"
+      "Read(//c/Users/soumu/OneDrive/ドキュメント/UnityMCP/**)",
+      "Bash(git remote remove:*)"
     ],
     "deny": [],
     "ask": []
