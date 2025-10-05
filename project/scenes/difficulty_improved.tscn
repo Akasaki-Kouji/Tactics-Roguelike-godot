@@ -1,0 +1,136 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8vqmx2ynw7a7"]
+
+[ext_resource type="Script" path="res://scripts/difficulty.gd" id="1_diff"]
+
+[node name="Difficulty" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_diff")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.95, 0.92, 0.85, 1)
+
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -250.0
+offset_right = 350.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="MainLayout"]
+layout_mode = 2
+text = "難易度選択"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 40
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+
+[node name="DifficultyPanel" type="PanelContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+
+[node name="DifficultyMargin" type="MarginContainer" parent="MainLayout/DifficultyPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
+
+[node name="DifficultyContent" type="VBoxContainer" parent="MainLayout/DifficultyPanel/DifficultyMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SelectorRow" type="HBoxContainer" parent="MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent"]
+layout_mode = 2
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent/SelectorRow"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+text = "◀"
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 28
+
+[node name="Spacer1" type="Control" parent="MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent/SelectorRow"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+
+[node name="DifficultyLabel" type="Label" parent="MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent/SelectorRow"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+text = "Normal"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 36
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Spacer2" type="Control" parent="MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent/SelectorRow"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+
+[node name="NextButton" type="Button" parent="MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent/SelectorRow"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+text = "▶"
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 28
+
+[node name="DescriptionLabel" type="Label" parent="MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "標準的な難易度
+敵の能力: 100%"
+theme_override_colors/font_color = Color(0.25, 0.22, 0.18, 1)
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Spacer2" type="Control" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+
+[node name="ButtonContainer" type="VBoxContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 12
+
+[node name="StartButton" type="Button" parent="MainLayout/ButtonContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "⚔ この設定で始める"
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 22
+
+[node name="BackButton" type="Button" parent="MainLayout/ButtonContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "戻る"
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 18
+
+[connection signal="pressed" from="MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent/SelectorRow/PrevButton" to="." method="_on_prev_button_pressed"]
+[connection signal="pressed" from="MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent/SelectorRow/NextButton" to="." method="_on_next_button_pressed"]
+[connection signal="pressed" from="MainLayout/ButtonContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="MainLayout/ButtonContainer/BackButton" to="." method="_on_back_button_pressed"]

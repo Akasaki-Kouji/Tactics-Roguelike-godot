@@ -1,0 +1,116 @@
+[gd_scene load_steps=2 format=3 uid="uid://e8vqmx5ynw7a0"]
+
+[ext_resource type="Script" path="res://scripts/game_over.gd" id="1_gameover"]
+
+[node name="GameOver" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gameover")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.88, 0.85, 0.78, 1)
+
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -300.0
+offset_right = 350.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 32
+
+[node name="Spacer1" type="Control" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Title" type="Label" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+text = "敗北"
+theme_override_colors/font_color = Color(0.85, 0.25, 0.25, 1)
+theme_override_font_sizes/font_size = 56
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResultsPanel" type="PanelContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+
+[node name="ResultsMargin" type="MarginContainer" parent="MainLayout/ResultsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
+
+[node name="ResultsContent" type="VBoxContainer" parent="MainLayout/ResultsPanel/ResultsMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ResultsTitle" type="Label" parent="MainLayout/ResultsPanel/ResultsMargin/ResultsContent"]
+layout_mode = 2
+text = "戦績"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+
+[node name="StageLabel" type="Label" parent="MainLayout/ResultsPanel/ResultsMargin/ResultsContent"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "到達ステージ: 1"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DifficultyLabel" type="Label" parent="MainLayout/ResultsPanel/ResultsMargin/ResultsContent"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "難易度: ノーマル"
+theme_override_colors/font_color = Color(0.25, 0.22, 0.18, 1)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ButtonContainer" type="VBoxContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 16
+
+[node name="RetryButton" type="Button" parent="MainLayout/ButtonContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "⚔ リトライ"
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 24
+
+[node name="HomeButton" type="Button" parent="MainLayout/ButtonContainer"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+text = "ホームに戻る"
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 20
+
+[node name="Spacer2" type="Control" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[connection signal="pressed" from="MainLayout/ButtonContainer/RetryButton" to="." method="_on_retry_button_pressed"]
+[connection signal="pressed" from="MainLayout/ButtonContainer/HomeButton" to="." method="_on_home_button_pressed"]

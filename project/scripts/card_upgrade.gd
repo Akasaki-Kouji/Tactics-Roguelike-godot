@@ -9,7 +9,11 @@ func _ready():
 	game_manager = get_node("/root/GameManager")
 
 	# タイトルにステージクリア情報を追加
-	$VBoxContainer/Title.text = "ステージ %d クリア！\n強化カード選択" % (game_manager.current_stage - 1)
+	var title_label = get_node_or_null("MainLayout/Header/Title")
+	if title_label == null:
+		title_label = get_node_or_null("VBoxContainer/Title")
+	if title_label != null:
+		title_label.text = "ステージ %d クリア！\n強化カード選択" % (game_manager.current_stage - 1)
 
 	generate_cards()
 
@@ -78,29 +82,42 @@ func display_cards():
 	print("Card 1: ", cards[1].name, " [", cards[1].rarity, "] - ", cards[1].desc)
 	print("Card 2: ", cards[2].name, " [", cards[2].rarity, "] - ", cards[2].desc)
 
+	# Find card buttons (support both UI layouts)
+	var card1_button = get_node_or_null("MainLayout/CardArea/CardContainer/Card1")
+	if card1_button == null:
+		card1_button = get_node_or_null("VBoxContainer/CardContainer/Card1")
+
+	var card2_button = get_node_or_null("MainLayout/CardArea/CardContainer/Card2")
+	if card2_button == null:
+		card2_button = get_node_or_null("VBoxContainer/CardContainer/Card2")
+
+	var card3_button = get_node_or_null("MainLayout/CardArea/CardContainer/Card3")
+	if card3_button == null:
+		card3_button = get_node_or_null("VBoxContainer/CardContainer/Card3")
+
 	# カード1
-	var card1_button = $VBoxContainer/CardContainer/Card1
-	card1_button.clip_text = false
-	var rarity1 = get_rarity_symbol(cards[0].rarity)
-	var card1_text = "%s [%s]\n\n%s" % [rarity1, cards[0].name, cards[0].desc]
-	card1_button.text = card1_text
-	apply_card_style(card1_button, cards[0])
+	if card1_button != null:
+		card1_button.clip_text = false
+		var rarity1 = get_rarity_symbol(cards[0].rarity)
+		var card1_text = "%s [%s]\n\n%s" % [rarity1, cards[0].name, cards[0].desc]
+		card1_button.text = card1_text
+		apply_card_style(card1_button, cards[0])
 
 	# カード2
-	var card2_button = $VBoxContainer/CardContainer/Card2
-	card2_button.clip_text = false
-	var rarity2 = get_rarity_symbol(cards[1].rarity)
-	var card2_text = "%s [%s]\n\n%s" % [rarity2, cards[1].name, cards[1].desc]
-	card2_button.text = card2_text
-	apply_card_style(card2_button, cards[1])
+	if card2_button != null:
+		card2_button.clip_text = false
+		var rarity2 = get_rarity_symbol(cards[1].rarity)
+		var card2_text = "%s [%s]\n\n%s" % [rarity2, cards[1].name, cards[1].desc]
+		card2_button.text = card2_text
+		apply_card_style(card2_button, cards[1])
 
 	# カード3
-	var card3_button = $VBoxContainer/CardContainer/Card3
-	card3_button.clip_text = false
-	var rarity3 = get_rarity_symbol(cards[2].rarity)
-	var card3_text = "%s [%s]\n\n%s" % [rarity3, cards[2].name, cards[2].desc]
-	card3_button.text = card3_text
-	apply_card_style(card3_button, cards[2])
+	if card3_button != null:
+		card3_button.clip_text = false
+		var rarity3 = get_rarity_symbol(cards[2].rarity)
+		var card3_text = "%s [%s]\n\n%s" % [rarity3, cards[2].name, cards[2].desc]
+		card3_button.text = card3_text
+		apply_card_style(card3_button, cards[2])
 
 	print("Cards displayed!")
 
@@ -175,12 +192,23 @@ func _on_card_3_pressed():
 
 func select_card(index: int):
 	selected_card = cards[index]
-	$VBoxContainer/InfoLabel.text = "カード選択: %s\nユニットを選んでください" % selected_card.name
+	var info_label = get_node_or_null("MainLayout/Header/InfoLabel")
+	if info_label == null:
+		info_label = get_node_or_null("VBoxContainer/InfoLabel")
+	if info_label != null:
+		info_label.text = "カード選択: %s\nユニットを選んでください" % selected_card.name
 	show_unit_selection()
 
 func show_unit_selection():
 	# ユニット選択UIを表示
-	for child in $VBoxContainer/UnitContainer.get_children():
+	var unit_container = get_node_or_null("MainLayout/CardArea/UnitSelectionPanel/UnitMargin/UnitContent/UnitContainer")
+	if unit_container == null:
+		unit_container = get_node_or_null("VBoxContainer/UnitContainer")
+
+	if unit_container == null:
+		return
+
+	for child in unit_container.get_children():
 		child.queue_free()
 
 	for i in range(game_manager.units.size()):
@@ -190,7 +218,7 @@ func show_unit_selection():
 			button.custom_minimum_size = Vector2(0, 60)
 			button.text = "%s\nHP:%d/%d ATK:%d DEF:%d SPD:%d" % [unit.name, unit.hp, unit.max_hp, unit.atk, unit.def, unit.spd]
 			button.pressed.connect(_on_unit_selected.bind(i))
-			$VBoxContainer/UnitContainer.add_child(button)
+			unit_container.add_child(button)
 
 func _on_unit_selected(unit_index: int):
 	selected_unit_index = unit_index
@@ -203,7 +231,11 @@ func apply_card():
 	game_manager.apply_card_to_unit(selected_unit_index, selected_card)
 
 	var unit = game_manager.units[selected_unit_index]
-	$VBoxContainer/InfoLabel.text = "%s に %s を付与しました！" % [unit.name, selected_card.name]
+	var info_label = get_node_or_null("MainLayout/Header/InfoLabel")
+	if info_label == null:
+		info_label = get_node_or_null("VBoxContainer/InfoLabel")
+	if info_label != null:
+		info_label.text = "%s に %s を付与しました！" % [unit.name, selected_card.name]
 
 	# 次のステージへ進む
 	await get_tree().create_timer(1.5).timeout

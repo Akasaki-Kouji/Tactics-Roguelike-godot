@@ -1,0 +1,106 @@
+[gd_scene load_steps=2 format=3 uid="uid://dmxvuq1ynw7a6"]
+
+[ext_resource type="Script" path="res://scripts/home.gd" id="1_home"]
+
+[node name="Home" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_home")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.95, 0.92, 0.85, 1)
+
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -250.0
+offset_right = 300.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="TitleContainer" type="VBoxContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Spacer" type="Control" parent="MainLayout/TitleContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Title" type="Label" parent="MainLayout/TitleContainer"]
+layout_mode = 2
+text = "タクティクス・ローグライク"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="MainLayout/TitleContainer"]
+layout_mode = 2
+text = "中世ヨーロッパ戦記"
+theme_override_colors/font_color = Color(0.72, 0.58, 0.30, 1)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Spacer2" type="Control" parent="MainLayout/TitleContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonContainer" type="VBoxContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 16
+
+[node name="StartButton" type="Button" parent="MainLayout/ButtonContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "⚔ ゲーム開始"
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 24
+
+[node name="QuitButton" type="Button" parent="MainLayout/ButtonContainer"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+text = "終了"
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 20
+
+[node name="VersionLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -32.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "v0.1.0"
+theme_override_colors/font_color = Color(0.25, 0.22, 0.18, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 2
+
+[connection signal="pressed" from="MainLayout/ButtonContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="MainLayout/ButtonContainer/QuitButton" to="." method="_on_quit_button_pressed"]

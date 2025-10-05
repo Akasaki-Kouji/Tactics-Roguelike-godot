@@ -461,10 +461,10 @@ func check_battle_end():
 
 	if not enemy_alive:
 		print("勝利！")
-		get_tree().change_scene_to_file("res://scenes/card_upgrade.tscn")
+		get_tree().change_scene_to_file("res://scenes/card_upgrade_improved.tscn")
 	elif not player_alive:
 		print("敗北...")
-		get_tree().change_scene_to_file("res://scenes/game_over.tscn")
+		get_tree().change_scene_to_file("res://scenes/game_over_improved.tscn")
 
 func _on_end_turn_pressed():
 	enemy_turn()

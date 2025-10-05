@@ -4,18 +4,32 @@ var selected_difficulty = 1  # 0=Easy, 1=Normal, 2=Hard
 
 func _ready():
 	update_difficulty_display()
-	$VBoxContainer/StartButton.grab_focus()
+	var start_button = get_node_or_null("MainLayout/ButtonContainer/StartButton")
+	if start_button == null:
+		start_button = get_node_or_null("VBoxContainer/StartButton")
+	if start_button != null:
+		start_button.grab_focus()
 
 func update_difficulty_display():
-	var difficulties = ["イージー", "ノーマル", "ハード"]
+	var difficulties = ["Easy", "Normal", "Hard"]
 	var descriptions = [
-		"敵が弱い（基本ステータス -30%）",
-		"標準的な難易度",
-		"敵が強い（基本ステータス +50%）"
+		"初心者向けの難易度\n敵の能力: 70%",
+		"標準的な難易度\n敵の能力: 100%",
+		"上級者向けの難易度\n敵の能力: 150%"
 	]
 
-	$VBoxContainer/DifficultyLabel.text = "難易度: " + difficulties[selected_difficulty]
-	$VBoxContainer/DescriptionLabel.text = descriptions[selected_difficulty]
+	# Check if using improved UI
+	var difficulty_label = get_node_or_null("MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent/SelectorRow/DifficultyLabel")
+	var description_label = get_node_or_null("MainLayout/DifficultyPanel/DifficultyMargin/DifficultyContent/DescriptionLabel")
+
+	if difficulty_label != null and description_label != null:
+		# Improved UI
+		difficulty_label.text = difficulties[selected_difficulty]
+		description_label.text = descriptions[selected_difficulty]
+	else:
+		# Old UI
+		$VBoxContainer/DifficultyLabel.text = "難易度: " + difficulties[selected_difficulty]
+		$VBoxContainer/DescriptionLabel.text = descriptions[selected_difficulty]
 
 func _on_prev_button_pressed():
 	selected_difficulty = max(0, selected_difficulty - 1)
@@ -44,4 +58,4 @@ func _on_start_button_pressed():
 	game_manager.start_new_game(difficulty_enum)
 
 func _on_back_button_pressed():
-	get_tree().change_scene_to_file("res://scenes/home.tscn")
+	get_tree().change_scene_to_file("res://scenes/home_improved.tscn")
