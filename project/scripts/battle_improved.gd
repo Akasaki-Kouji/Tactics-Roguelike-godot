@@ -147,6 +147,7 @@ enum ActionMode { NONE, MOVE, ATTACK }
 var current_action_mode = ActionMode.NONE
 var current_turn = 1
 var current_map_id = 0  # Which terrain map to use
+var use_procedural = true  # Use procedural generation instead of static maps
 
 func _ready():
 	game_manager = get_node("/root/GameManager")
@@ -235,10 +236,14 @@ func update_info_bar():
 	$MainLayout/InfoBar/InfoBarMargin/InfoBarContent/EnemyCountLabel.text = "敵: %d" % enemy_count
 
 func setup_terrain_map():
-	"""Initialize terrain layout - static maps for Phase 1"""
+	"""Initialize terrain layout - procedural or static"""
 	terrain_map = []
 
-	# Map templates (can add more later)
+	if use_procedural:
+		generate_procedural_map()
+		return
+
+	# Map templates (static fallback)
 	var maps = [
 		# Map 0: Mixed terrain with forest center
 		[
@@ -1054,3 +1059,241 @@ func calculate_danger_zones():
 								if has_line_of_sight(pos, attack_pos):
 									if attack_pos not in danger_zone_tiles:
 										danger_zone_tiles.append(attack_pos)
+
+# ========================================
+# PHASE 3: PROCEDURAL GENERATION
+# ========================================
+
+const BIOMES = {
+	"plains": {
+		"name": "平原",
+		"terrain_weights": {
+			"plains": 70,
+			"road": 10,
+			"forest": 15,
+			"swamp": 5
+		},
+		"hazard_chance": 0.02,
+		"wall_chance": 0.05
+	},
+	"forest": {
+		"name": "森林",
+		"terrain_weights": {
+			"plains": 30,
+			"forest": 50,
+			"swamp": 10,
+			"hill": 10
+		},
+		"hazard_chance": 0.03,
+		"wall_chance": 0.05
+	},
+	"mountain": {
+		"name": "山岳",
+		"terrain_weights": {
+			"plains": 30,
+			"hill": 40,
+			"wall": 20,
+			"road": 10
+		},
+		"hazard_chance": 0.05,
+		"wall_chance": 0.15
+	},
+	"swampland": {
+		"name": "湿地",
+		"terrain_weights": {
+			"swamp": 50,
+			"poison": 20,
+			"plains": 20,
+			"forest": 10
+		},
+		"hazard_chance": 0.08,
+		"wall_chance": 0.02
+	}
+}
+
+func generate_procedural_map():
+	"""Generate a random map using cellular automata"""
+	# Select biome based on stage
+	var biome_names = ["plains", "forest", "mountain", "swampland"]
+	var biome_id = biome_names[(game_manager.current_stage - 1) % biome_names.size()]
+	var biome = BIOMES[biome_id]
+
+	print("生成中: %s バイオーム (ステージ %d)" % [biome.name, game_manager.current_stage])
+
+	# Initialize with base terrain
+	for y in range(GRID_SIZE):
+		var row = []
+		for x in range(GRID_SIZE):
+			row.append(select_weighted_terrain(biome.terrain_weights))
+		terrain_map.append(row)
+
+	# Apply cellular automata for natural clustering
+	smooth_terrain_cellular_automata(3)
+
+	# Ensure connectivity
+	ensure_map_connectivity()
+
+	# Add hazards based on biome
+	add_random_hazards(biome.hazard_chance)
+
+	# Place setpieces
+	place_setpieces(biome)
+
+	print("マップ生成完了")
+
+func select_weighted_terrain(weights: Dictionary) -> String:
+	"""Select terrain type based on weighted probabilities"""
+	var total = 0
+	for weight in weights.values():
+		total += weight
+
+	var roll = randf() * total
+	var accumulated = 0.0
+
+	for terrain_id in weights.keys():
+		accumulated += weights[terrain_id]
+		if roll <= accumulated:
+			return terrain_id
+
+	return "plains"  # Fallback
+
+func smooth_terrain_cellular_automata(iterations: int):
+	"""Smooth terrain using cellular automata rules"""
+	for iter in range(iterations):
+		var new_map = []
+
+		for y in range(GRID_SIZE):
+			var row = []
+			for x in range(GRID_SIZE):
+				# Count neighbor types
+				var neighbors = get_neighbor_terrains(x, y)
+				var most_common = get_most_common_terrain(neighbors)
+
+				# Keep current or switch to most common
+				var current = terrain_map[y][x]
+				if neighbors.has(current):
+					# Keep if common enough
+					var count = neighbors.count(current)
+					if count >= 3:
+						row.append(current)
+					else:
+						row.append(most_common)
+				else:
+					row.append(most_common)
+
+			new_map.append(row)
+
+		terrain_map = new_map
+
+func get_neighbor_terrains(x: int, y: int) -> Array:
+	"""Get terrain types of 8 neighbors"""
+	var neighbors = []
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			if dx == 0 and dy == 0:
+				continue
+			var nx = x + dx
+			var ny = y + dy
+			if nx >= 0 and nx < GRID_SIZE and ny >= 0 and ny < GRID_SIZE:
+				neighbors.append(terrain_map[ny][nx])
+	return neighbors
+
+func get_most_common_terrain(terrains: Array) -> String:
+	"""Find most common terrain in array"""
+	var counts = {}
+	for terrain in terrains:
+		counts[terrain] = counts.get(terrain, 0) + 1
+
+	var max_count = 0
+	var most_common = "plains"
+	for terrain in counts.keys():
+		if counts[terrain] > max_count:
+			max_count = counts[terrain]
+			most_common = terrain
+
+	return most_common
+
+func ensure_map_connectivity():
+	"""Ensure all walkable tiles are connected"""
+	# Find start and goal positions (player and enemy spawn areas)
+	var start_pos = Vector2i(1, 3)
+	var goal_pos = Vector2i(6, 4)
+
+	# BFS to check connectivity
+	var visited = {}
+	var queue = [start_pos]
+	visited[start_pos] = true
+
+	while queue.size() > 0:
+		var pos = queue.pop_front()
+
+		for dir in [Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)]:
+			var next = pos + dir
+			if next.x < 0 or next.x >= GRID_SIZE or next.y < 0 or next.y >= GRID_SIZE:
+				continue
+			if visited.has(next):
+				continue
+
+			var terrain_id = terrain_map[next.y][next.x]
+			var terrain_data = TERRAIN_TYPES.get(terrain_id, {})
+			if not terrain_data.get("walkable", true):
+				continue
+
+			visited[next] = true
+			queue.append(next)
+
+	# If goal not reached, create path
+	if not visited.has(goal_pos):
+		print("接続保証: ゴールへのパスを作成")
+		create_path(start_pos, goal_pos)
+
+func create_path(from: Vector2i, to: Vector2i):
+	"""Create a walkable path between two points"""
+	var current = from
+	while current != to:
+		# Move towards goal
+		if current.x < to.x:
+			current.x += 1
+		elif current.x > to.x:
+			current.x -= 1
+		elif current.y < to.y:
+			current.y += 1
+		elif current.y > to.y:
+			current.y -= 1
+
+		# Make walkable
+		terrain_map[current.y][current.x] = "road"
+
+func add_random_hazards(chance: float):
+	"""Add hazard tiles randomly"""
+	for y in range(GRID_SIZE):
+		for x in range(GRID_SIZE):
+			if randf() < chance:
+				var current = terrain_map[y][x]
+				# Don't overwrite important tiles
+				if current in ["road", "wall"]:
+					continue
+
+				# Choose hazard based on terrain
+				if current in ["swamp", "poison"]:
+					terrain_map[y][x] = "poison"
+				else:
+					terrain_map[y][x] = "fire" if randf() < 0.5 else "poison"
+
+func place_setpieces(biome: Dictionary):
+	"""Place special structures"""
+	# Place 1-2 clusters of walls/obstacles
+	var num_obstacles = 1 + (game_manager.current_stage / 3)
+
+	for i in range(num_obstacles):
+		var cx = 2 + randi() % (GRID_SIZE - 4)
+		var cy = 2 + randi() % (GRID_SIZE - 4)
+
+		# Small 2x2 obstacle
+		for dy in range(2):
+			for dx in range(2):
+				var x = cx + dx
+				var y = cy + dy
+				if x < GRID_SIZE and y < GRID_SIZE:
+					if randf() < biome.wall_chance * 3:
+						terrain_map[y][x] = "wall"
