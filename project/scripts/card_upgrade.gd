@@ -35,14 +35,53 @@ func display_cards():
 	# カード1
 	var card1_text = "[%s]\n\n%s" % [cards[0].name, cards[0].desc]
 	$CardContainer/Card1.text = card1_text
+	apply_card_style($CardContainer/Card1, cards[0].type)
 
 	# カード2
 	var card2_text = "[%s]\n\n%s" % [cards[1].name, cards[1].desc]
 	$CardContainer/Card2.text = card2_text
+	apply_card_style($CardContainer/Card2, cards[1].type)
 
 	# カード3
 	var card3_text = "[%s]\n\n%s" % [cards[2].name, cards[2].desc]
 	$CardContainer/Card3.text = card3_text
+	apply_card_style($CardContainer/Card3, cards[2].type)
+
+func apply_card_style(button: Button, card_type: String):
+	var style = StyleBoxFlat.new()
+
+	# カードタイプごとに色を設定
+	match card_type:
+		"hp":
+			style.bg_color = Color(0.2, 0.7, 0.3)  # 緑（体力）
+		"atk":
+			style.bg_color = Color(0.9, 0.3, 0.3)  # 赤（攻撃）
+		"def":
+			style.bg_color = Color(0.3, 0.5, 0.9)  # 青（防御）
+		"res":
+			style.bg_color = Color(0.7, 0.3, 0.9)  # 紫（魔防）
+		"spd":
+			style.bg_color = Color(0.9, 0.8, 0.2)  # 黄色（速さ）
+		"dex":
+			style.bg_color = Color(0.9, 0.6, 0.2)  # オレンジ（技）
+		"lck":
+			style.bg_color = Color(0.9, 0.5, 0.7)  # ピンク（運）
+		_:
+			style.bg_color = Color(0.5, 0.5, 0.5)  # グレー（デフォルト）
+
+	# 枠線を追加
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(1, 1, 1, 0.5)  # 白い半透明の枠線
+
+	button.add_theme_stylebox_override("normal", style)
+	button.add_theme_stylebox_override("hover", style)
+	button.add_theme_stylebox_override("pressed", style)
+
+	# テキストを白色で見やすく
+	button.add_theme_color_override("font_color", Color(1, 1, 1))
 
 func _on_card_1_pressed():
 	select_card(0)
