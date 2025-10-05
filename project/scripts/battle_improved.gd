@@ -18,17 +18,90 @@ const COLOR_MOVE = Color(0.25, 0.45, 0.75, 0.5)  # Blue with transparency
 const COLOR_ATTACK = Color(0.85, 0.25, 0.25, 0.5)  # Red with transparency
 const COLOR_DANGER = Color(0.90, 0.55, 0.20, 0.5)  # Orange with transparency
 
+# Terrain System - Phase 1
+const TERRAIN_TYPES = {
+	"plains": {
+		"name": "平原",
+		"move_cost": 1,
+		"height": 0,
+		"evasion": 0,
+		"defense": 0,
+		"walkable": true,
+		"color": Color(0.70, 0.68, 0.65),
+		"icon": "◇",
+		"desc": "平坦な地形"
+	},
+	"road": {
+		"name": "道",
+		"move_cost": 1,
+		"height": 0,
+		"evasion": 0,
+		"defense": 0,
+		"walkable": true,
+		"color": Color(0.60, 0.55, 0.50),
+		"icon": "=",
+		"desc": "移動しやすい舗装路"
+	},
+	"forest": {
+		"name": "森林",
+		"move_cost": 2,
+		"height": 0,
+		"evasion": 15,
+		"defense": 1,
+		"walkable": true,
+		"color": Color(0.30, 0.55, 0.30),
+		"icon": "♠",
+		"desc": "回避+15 防御+1"
+	},
+	"swamp": {
+		"name": "沼地",
+		"move_cost": 3,
+		"height": 0,
+		"evasion": -10,
+		"defense": 0,
+		"walkable": true,
+		"color": Color(0.45, 0.50, 0.40),
+		"icon": "~",
+		"desc": "移動困難 回避-10"
+	},
+	"hill": {
+		"name": "丘",
+		"move_cost": 2,
+		"height": 1,
+		"evasion": 10,
+		"defense": 2,
+		"walkable": true,
+		"color": Color(0.65, 0.55, 0.45),
+		"icon": "△",
+		"desc": "高度+1 回避+10 防御+2"
+	},
+	"wall": {
+		"name": "壁",
+		"move_cost": 99,
+		"height": 2,
+		"evasion": 0,
+		"defense": 0,
+		"walkable": false,
+		"color": Color(0.25, 0.25, 0.28),
+		"icon": "█",
+		"desc": "通行不可"
+	}
+}
+
 var grid = []
+var terrain_map = []  # 2D array of terrain IDs
 var selected_unit = null
 var selected_tile = null
 var game_manager
 var unit_positions = {}
 var move_range_tiles = []
 var attack_range_tiles = []
+var hovered_tile = null  # For tooltip
 
 enum ActionMode { NONE, MOVE, ATTACK }
 var current_action_mode = ActionMode.NONE
 var current_turn = 1
+var current_map_id = 0  # Which terrain map to use
 
 func _ready():
 	game_manager = get_node("/root/GameManager")
@@ -45,6 +118,8 @@ func _ready():
 	# Update info bar
 	update_info_bar()
 
+	# Initialize terrain
+	setup_terrain_map()
 	setup_grid()
 	place_units()
 
@@ -104,12 +179,67 @@ func update_info_bar():
 			enemy_count += 1
 	$MainLayout/InfoBar/InfoBarMargin/InfoBarContent/EnemyCountLabel.text = "敵: %d" % enemy_count
 
+func setup_terrain_map():
+	"""Initialize terrain layout - static maps for Phase 1"""
+	terrain_map = []
+
+	# Map templates (can add more later)
+	var maps = [
+		# Map 0: Mixed terrain with forest center
+		[
+			["plains", "road", "road", "plains", "plains", "road", "road", "plains"],
+			["plains", "road", "forest", "forest", "forest", "forest", "road", "plains"],
+			["plains", "plains", "forest", "forest", "forest", "forest", "plains", "plains"],
+			["plains", "plains", "forest", "plains", "plains", "forest", "plains", "plains"],
+			["plains", "plains", "forest", "plains", "plains", "forest", "plains", "plains"],
+			["plains", "plains", "forest", "forest", "forest", "forest", "plains", "plains"],
+			["plains", "road", "forest", "forest", "forest", "forest", "road", "plains"],
+			["plains", "road", "road", "plains", "plains", "road", "road", "plains"]
+		],
+		# Map 1: Hills and swamps
+		[
+			["plains", "plains", "swamp", "swamp", "plains", "plains", "plains", "plains"],
+			["plains", "hill", "swamp", "swamp", "plains", "hill", "plains", "plains"],
+			["plains", "hill", "plains", "plains", "plains", "hill", "hill", "plains"],
+			["plains", "plains", "plains", "plains", "plains", "plains", "hill", "plains"],
+			["plains", "plains", "plains", "plains", "plains", "plains", "plains", "plains"],
+			["plains", "hill", "hill", "plains", "plains", "plains", "hill", "plains"],
+			["plains", "hill", "plains", "plains", "swamp", "swamp", "hill", "plains"],
+			["plains", "plains", "plains", "plains", "swamp", "swamp", "plains", "plains"]
+		],
+		# Map 2: Fortress with walls
+		[
+			["plains", "plains", "plains", "wall", "wall", "plains", "plains", "plains"],
+			["plains", "road", "road", "wall", "wall", "road", "road", "plains"],
+			["plains", "road", "plains", "plains", "plains", "plains", "road", "plains"],
+			["plains", "road", "plains", "forest", "forest", "plains", "road", "plains"],
+			["plains", "road", "plains", "forest", "forest", "plains", "road", "plains"],
+			["plains", "road", "plains", "plains", "plains", "plains", "road", "plains"],
+			["plains", "road", "road", "wall", "wall", "road", "road", "plains"],
+			["plains", "plains", "plains", "wall", "wall", "plains", "plains", "plains"]
+		]
+	]
+
+	# Select map based on stage or random
+	var map_index = (game_manager.current_stage - 1) % maps.size()
+	terrain_map = maps[map_index]
+
+	print("Terrain map loaded: Map %d" % map_index)
+
 func setup_grid():
 	for y in range(GRID_SIZE):
 		var row = []
 		for x in range(GRID_SIZE):
 			row.append(null)
 		grid.append(row)
+
+func get_terrain(pos: Vector2i) -> Dictionary:
+	"""Get terrain data at position"""
+	if pos.x < 0 or pos.x >= GRID_SIZE or pos.y < 0 or pos.y >= GRID_SIZE:
+		return TERRAIN_TYPES["wall"]  # Out of bounds = wall
+
+	var terrain_id = terrain_map[pos.y][pos.x]
+	return TERRAIN_TYPES[terrain_id]
 
 func place_units():
 	var player_units = []
@@ -158,16 +288,20 @@ func create_tile(x: int, y: int) -> Button:
 
 	var pos = Vector2i(x, y)
 	var unit_index = grid[y][x]
+	var terrain = get_terrain(pos)
 
 	var is_move_range = pos in move_range_tiles
 	var is_attack_range = pos in attack_range_tiles
 	var is_selected = (pos == selected_tile)
 
-	# Medieval stone tile style with improved range visualization
+	# Medieval stone tile style with terrain colors
 	var style = StyleBoxFlat.new()
 
-	# Base color: stone tile pattern
-	var bg_color = Color(0.65, 0.63, 0.60) if (x + y) % 2 == 0 else Color(0.70, 0.68, 0.65)
+	# Base color: terrain-specific
+	var bg_color = terrain.color
+	# Add slight checkerboard variation
+	if (x + y) % 2 == 1:
+		bg_color = bg_color * 1.1
 
 	# Improved range visualization with color + pattern
 	if is_move_range:
@@ -200,10 +334,23 @@ func create_tile(x: int, y: int) -> Button:
 	button.add_theme_stylebox_override("hover", style)
 	button.add_theme_stylebox_override("pressed", style)
 
-	# Unit display
+	# Display terrain icon + unit
+	var display_text = ""
+
+	# Terrain icon (small, bottom-right)
+	if terrain.icon != "◇":  # Don't show plains icon
+		display_text = terrain.icon
+
+	# Unit display (larger, center)
 	if unit_index != null:
 		var unit = game_manager.units[unit_index]
-		button.text = unit.name[0] if unit.name.length() > 0 else "U"
+		var unit_char = unit.name[0] if unit.name.length() > 0 else "U"
+		# Show unit on top line, terrain on bottom
+		if display_text != "":
+			button.text = unit_char + "\n " + display_text
+		else:
+			button.text = unit_char
+		button.add_theme_font_size_override("font_size", 24)
 
 		# Acted units are darkened
 		if unit.is_player and unit.has_acted:
@@ -233,7 +380,10 @@ func create_tile(x: int, y: int) -> Button:
 		else:
 			button.add_theme_color_override("font_color", COLOR_TEXT)
 	else:
-		button.text = ""
+		# Empty tile: show terrain icon only
+		button.text = display_text
+		button.add_theme_font_size_override("font_size", 20)
+		button.add_theme_color_override("font_color", COLOR_TEXT * 0.6)
 
 	button.pressed.connect(_on_tile_pressed.bind(pos))
 	button.mouse_entered.connect(_on_tile_hover.bind(pos))
@@ -285,15 +435,23 @@ func _on_tile_pressed(pos: Vector2i):
 			update_display()
 
 func _on_tile_hover(pos: Vector2i):
+	hovered_tile = pos
 	var unit_index = grid[pos.y][pos.x]
 
+	# Show combat preview for attackable enemies
 	if unit_index != null and selected_unit != null and pos in attack_range_tiles:
 		var unit = game_manager.units[unit_index]
 		if not unit.is_player:
 			show_combat_preview(selected_unit, unit_index, pos)
+			return
+
+	# Show terrain tooltip
+	show_terrain_tooltip(pos)
 
 func _on_tile_hover_exit():
+	hovered_tile = null
 	hide_combat_preview()
+	hide_terrain_tooltip()
 
 func update_unit_info_panel():
 	if selected_unit != null:
@@ -365,16 +523,82 @@ func _on_cancel_button_pressed():
 		update_display()
 
 func calculate_move_range(from_pos: Vector2i):
+	"""Weighted BFS with terrain cost and height"""
 	move_range_tiles.clear()
 
-	for y in range(GRID_SIZE):
-		for x in range(GRID_SIZE):
-			var pos = Vector2i(x, y)
-			var distance = abs(pos.x - from_pos.x) + abs(pos.y - from_pos.y)
+	# Get unit data for jump power (default jump = 1)
+	var unit_jump = 1
+	if selected_unit != null:
+		var unit = game_manager.units[selected_unit]
+		# Could add jump stat to units later
+		unit_jump = 1
 
-			if distance <= MOVE_RANGE and distance > 0:
-				if grid[y][x] == null:
-					move_range_tiles.append(pos)
+	# BFS with cost tracking
+	var queue = []
+	var visited = {}  # pos -> remaining_move_points
+	var start_terrain = get_terrain(from_pos)
+
+	queue.append({"pos": from_pos, "cost": 0})
+	visited[from_pos] = MOVE_RANGE
+
+	while queue.size() > 0:
+		var current = queue.pop_front()
+		var pos = current.pos
+		var accumulated_cost = current.cost
+
+		# Check 4 directions
+		var directions = [
+			Vector2i(0, -1),  # Up
+			Vector2i(0, 1),   # Down
+			Vector2i(-1, 0),  # Left
+			Vector2i(1, 0)    # Right
+		]
+
+		for dir in directions:
+			var next_pos = pos + dir
+
+			# Bounds check
+			if next_pos.x < 0 or next_pos.x >= GRID_SIZE or next_pos.y < 0 or next_pos.y >= GRID_SIZE:
+				continue
+
+			# Skip if occupied
+			if grid[next_pos.y][next_pos.x] != null:
+				continue
+
+			var next_terrain = get_terrain(next_pos)
+
+			# Check walkable
+			if not next_terrain.walkable:
+				continue
+
+			# Check height difference (jump check)
+			var from_height = get_terrain(pos).height
+			var to_height = next_terrain.height
+			var height_diff = abs(to_height - from_height)
+
+			if height_diff > unit_jump:
+				continue
+
+			# Calculate new cost
+			var move_cost = next_terrain.move_cost
+			var new_cost = accumulated_cost + move_cost
+
+			# Check if within range
+			if new_cost > MOVE_RANGE:
+				continue
+
+			# Check if this is a better path
+			var remaining = MOVE_RANGE - new_cost
+			if next_pos in visited and visited[next_pos] >= remaining:
+				continue
+
+			visited[next_pos] = remaining
+			queue.append({"pos": next_pos, "cost": new_cost})
+
+	# Convert visited to move_range_tiles (excluding start)
+	for pos in visited.keys():
+		if pos != from_pos:
+			move_range_tiles.append(pos)
 
 func calculate_attack_range(from_pos: Vector2i):
 	attack_range_tiles.clear()
@@ -400,14 +624,40 @@ func attack_unit(attacker_index: int, target_index: int):
 	var attacker = game_manager.units[attacker_index]
 	var target = game_manager.units[target_index]
 
-	var damage = max(1, attacker.atk - target.def)
+	# Get terrain modifiers
+	var attacker_pos = unit_positions[attacker_index]
+	var target_pos = unit_positions[target_index]
+	var attacker_terrain = get_terrain(attacker_pos)
+	var target_terrain = get_terrain(target_pos)
+
+	# Height advantage: +2 damage per height level, max ±4
+	var height_diff = attacker_terrain.height - target_terrain.height
+	height_diff = clamp(height_diff, -2, 2)
+	var height_bonus = height_diff * 2
+
+	# Defense modifier from terrain
+	var terrain_def = target_terrain.defense
+
+	# Calculate damage with terrain
+	var base_damage = attacker.atk - target.def - terrain_def + height_bonus
+	var damage = max(1, base_damage)
 	target.hp -= damage
+
+	print("Attack: %s (%d dmg) -> %s | Height: %+d, Terrain Def: %+d" % [
+		attacker.name, damage, target.name, height_bonus, terrain_def
+	])
 
 	await get_tree().create_timer(0.3).timeout
 
 	if target.hp > 0:
-		var counter_damage = max(1, target.atk - attacker.def)
+		# Counter attack (reverse height)
+		var counter_height_bonus = -height_diff * 2
+		var attacker_terrain_def = attacker_terrain.defense
+		var counter_base = target.atk - attacker.def - attacker_terrain_def + counter_height_bonus
+		var counter_damage = max(1, counter_base)
 		attacker.hp -= counter_damage
+
+		print("Counter: %s (%d dmg) -> %s" % [target.name, counter_damage, attacker.name])
 		await get_tree().create_timer(0.3).timeout
 
 	if target.hp <= 0:
@@ -427,10 +677,35 @@ func show_combat_preview(attacker_index: int, target_index: int, target_pos: Vec
 	var attacker = game_manager.units[attacker_index]
 	var target = game_manager.units[target_index]
 
-	var damage = max(1, attacker.atk - target.def)
-	var counter_damage = max(1, target.atk - attacker.def)
+	# Get terrain modifiers
+	var attacker_pos = unit_positions[attacker_index]
+	var attacker_terrain = get_terrain(attacker_pos)
+	var target_terrain = get_terrain(target_pos)
 
-	var preview_text = "【戦闘予測】\n%s → %s: %dダメージ\n" % [attacker.name, target.name, damage]
+	# Height advantage
+	var height_diff = attacker_terrain.height - target_terrain.height
+	height_diff = clamp(height_diff, -2, 2)
+	var height_bonus = height_diff * 2
+
+	# Calculate damage with terrain
+	var terrain_def = target_terrain.defense
+	var base_damage = attacker.atk - target.def - terrain_def + height_bonus
+	var damage = max(1, base_damage)
+
+	var counter_height_bonus = -height_diff * 2
+	var attacker_terrain_def = attacker_terrain.defense
+	var counter_base = target.atk - attacker.def - attacker_terrain_def + counter_height_bonus
+	var counter_damage = max(1, counter_base)
+
+	var preview_text = "【戦闘予測】\n%s → %s: %dダメージ" % [attacker.name, target.name, damage]
+
+	# Show terrain effects
+	if height_bonus != 0:
+		preview_text += " (高度:%+d)" % height_bonus
+	if terrain_def != 0:
+		preview_text += " (地形防:%+d)" % terrain_def
+
+	preview_text += "\n"
 
 	if target.hp > damage:
 		preview_text += "%s 反撃: %dダメージ" % [target.name, counter_damage]
@@ -447,6 +722,43 @@ func show_combat_preview(attacker_index: int, target_index: int, target_pos: Vec
 
 func hide_combat_preview():
 	$CombatPreviewPopup.visible = false
+
+func show_terrain_tooltip(pos: Vector2i):
+	"""Show terrain information tooltip"""
+	var terrain = get_terrain(pos)
+
+	var tooltip_text = "%s %s\n" % [terrain.icon, terrain.name]
+
+	# Add stats
+	var stats = []
+	if terrain.move_cost != 1:
+		stats.append("移動: %d" % terrain.move_cost)
+	if terrain.height != 0:
+		stats.append("高度: +%d" % terrain.height)
+	if terrain.evasion != 0:
+		stats.append("回避: %+d" % terrain.evasion)
+	if terrain.defense != 0:
+		stats.append("防御: +%d" % terrain.defense)
+	if not terrain.walkable:
+		stats.append("通行不可")
+
+	if stats.size() > 0:
+		tooltip_text += " ".join(stats)
+	else:
+		tooltip_text += terrain.desc
+
+	$CombatPreviewPopup/PreviewMargin/PreviewLabel.text = tooltip_text
+	$CombatPreviewPopup.visible = true
+
+	# Position near tile
+	var grid_panel = $MainLayout/BattleArea/GridPanel/GridMargin/GridContainer
+	var tile_pos = Vector2(pos.x * TILE_SIZE, pos.y * TILE_SIZE) + grid_panel.global_position
+	$CombatPreviewPopup.position = tile_pos + Vector2(TILE_SIZE + 10, 0)
+
+func hide_terrain_tooltip():
+	# Only hide if not showing combat preview
+	if hovered_tile == null:
+		$CombatPreviewPopup.visible = false
 
 func check_battle_end():
 	var player_alive = false
