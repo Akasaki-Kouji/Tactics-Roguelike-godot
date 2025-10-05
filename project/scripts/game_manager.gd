@@ -70,7 +70,33 @@ func apply_card_to_unit(unit_index: int, card_data: Dictionary):
 
 func next_stage():
 	current_stage += 1
-	# ユニットの行動済みフラグをリセット
-	for unit in units:
-		unit.has_acted = false
+
+	# プレイヤーユニットのHPを全回復
+	for i in range(units.size()):
+		var unit = units[i]
+		if unit.is_player and unit.hp > 0:
+			unit.hp = unit.max_hp
+			unit.has_acted = false
+
+	# 敵ユニットを削除して新しい敵を生成
+	var player_units = []
+	for i in range(units.size()):
+		if units[i].is_player:
+			player_units.append(units[i])
+
+	units.clear()
+	units = player_units.duplicate()
+
+	# ステージに応じて敵を強化
+	var enemy_boost = (current_stage - 1) * 3  # ステージごとに全ステータス+3
+
+	# 敵の数も増やす（最大4体まで）
+	var enemy_count = min(2 + (current_stage - 1), 4)
+
+	for i in range(enemy_count):
+		if i % 2 == 0:
+			units.append(create_unit("敵兵士Lv%d" % current_stage, 18 + enemy_boost, 6 + enemy_boost, 5 + enemy_boost, 4 + enemy_boost, 6 + enemy_boost, 7 + enemy_boost, 4 + enemy_boost, false))
+		else:
+			units.append(create_unit("敵盗賊Lv%d" % current_stage, 16 + enemy_boost, 5 + enemy_boost, 3 + enemy_boost, 2 + enemy_boost, 8 + enemy_boost, 9 + enemy_boost, 6 + enemy_boost, false))
+
 	get_tree().change_scene_to_file("res://scenes/battle.tscn")

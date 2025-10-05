@@ -26,6 +26,9 @@ func _ready():
 	print("Battle scene ready")
 	print("Units count: ", game_manager.units.size())
 
+	# ステージ番号を更新
+	$VBoxContainer/TopBar/StageLabel.text = "ステージ %d" % game_manager.current_stage
+
 	setup_grid()
 	place_units()
 
