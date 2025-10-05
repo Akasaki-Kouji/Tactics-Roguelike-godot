@@ -17,9 +17,9 @@ func _ready():
 
 func reset_units():
 	units.clear()
-	# プレイヤーユニット2体
-	units.append(create_unit("騎士", 25, 8, 6, 5, 7, 8, 5, true))
-	units.append(create_unit("剣士", 20, 7, 4, 3, 9, 10, 7, true))
+	# プレイヤーユニット2体（攻撃力を大幅に強化）
+	units.append(create_unit("騎士", 25, 25, 6, 5, 7, 8, 5, true))
+	units.append(create_unit("剣士", 20, 25, 4, 3, 9, 10, 7, true))
 	# 敵ユニット2体
 	units.append(create_unit("敵兵士", 18, 6, 5, 4, 6, 7, 4, false))
 	units.append(create_unit("敵盗賊", 16, 5, 3, 2, 8, 9, 6, false))
