@@ -12,7 +12,9 @@ func _ready():
 	$VBoxContainer/Title.text = "ステージ %d クリア！\n強化カード選択" % (game_manager.current_stage - 1)
 
 	generate_cards()
-	display_cards()
+
+	# 次のフレームでカードを表示
+	call_deferred("display_cards")
 
 func generate_cards():
 	cards.clear()
@@ -32,20 +34,33 @@ func generate_cards():
 		cards.append(card_types[randi() % card_types.size()])
 
 func display_cards():
+	print("Displaying cards...")
+	print("Card 0: ", cards[0].name, " - ", cards[0].desc)
+	print("Card 1: ", cards[1].name, " - ", cards[1].desc)
+	print("Card 2: ", cards[2].name, " - ", cards[2].desc)
+
 	# カード1
+	var card1_button = $CardContainer/Card1
+	card1_button.clip_text = false
 	var card1_text = "[%s]\n\n%s" % [cards[0].name, cards[0].desc]
-	$CardContainer/Card1.text = card1_text
-	apply_card_style($CardContainer/Card1, cards[0].type)
+	card1_button.text = card1_text
+	apply_card_style(card1_button, cards[0].type)
 
 	# カード2
+	var card2_button = $CardContainer/Card2
+	card2_button.clip_text = false
 	var card2_text = "[%s]\n\n%s" % [cards[1].name, cards[1].desc]
-	$CardContainer/Card2.text = card2_text
-	apply_card_style($CardContainer/Card2, cards[1].type)
+	card2_button.text = card2_text
+	apply_card_style(card2_button, cards[1].type)
 
 	# カード3
+	var card3_button = $CardContainer/Card3
+	card3_button.clip_text = false
 	var card3_text = "[%s]\n\n%s" % [cards[2].name, cards[2].desc]
-	$CardContainer/Card3.text = card3_text
-	apply_card_style($CardContainer/Card3, cards[2].type)
+	card3_button.text = card3_text
+	apply_card_style(card3_button, cards[2].type)
+
+	print("Cards displayed!")
 
 func apply_card_style(button: Button, card_type: String):
 	var style = StyleBoxFlat.new()
