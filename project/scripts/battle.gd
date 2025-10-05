@@ -163,7 +163,17 @@ func _on_tile_pressed(pos: Vector2i):
 	if current_action_mode == ActionMode.NONE:
 		if unit_index != null:
 			var unit = game_manager.units[unit_index]
-			if unit.is_player and not unit.has_acted:
+
+			# 敵ユニットの場合は情報表示のみ
+			if not unit.is_player:
+				var unit_type = "敵"
+				$VBoxContainer/UnitInfo.text = "[%s] %s HP:%d/%d ATK:%d DEF:%d RES:%d SPD:%d DEX:%d LCK:%d" % [
+					unit_type, unit.name, unit.hp, unit.max_hp, unit.atk, unit.def, unit.res, unit.spd, unit.dex, unit.lck
+				]
+				return
+
+			# 味方ユニットの場合は選択
+			if not unit.has_acted:
 				# 別のユニットを選択（選択切り替え）
 				selected_unit = unit_index
 				selected_tile = pos
@@ -209,8 +219,8 @@ func _on_tile_hover(pos: Vector2i):
 	if unit_index != null:
 		var unit = game_manager.units[unit_index]
 		var unit_type = "味方" if unit.is_player else "敵"
-		$VBoxContainer/UnitInfo.text = "[%s] %s HP:%d/%d ATK:%d DEF:%d SPD:%d" % [
-			unit_type, unit.name, unit.hp, unit.max_hp, unit.atk, unit.def, unit.spd
+		$VBoxContainer/UnitInfo.text = "[%s] %s HP:%d/%d ATK:%d DEF:%d RES:%d SPD:%d DEX:%d LCK:%d" % [
+			unit_type, unit.name, unit.hp, unit.max_hp, unit.atk, unit.def, unit.res, unit.spd, unit.dex, unit.lck
 		]
 
 		# 選択中のユニットがいて、攻撃範囲内の敵の場合は戦闘予測も表示
@@ -412,8 +422,9 @@ func hide_combat_preview():
 func update_unit_info():
 	if selected_unit != null:
 		var unit = game_manager.units[selected_unit]
-		$VBoxContainer/UnitInfo.text = "%s HP:%d/%d ATK:%d DEF:%d SPD:%d" % [
-			unit.name, unit.hp, unit.max_hp, unit.atk, unit.def, unit.spd
+		var unit_type = "味方" if unit.is_player else "敵"
+		$VBoxContainer/UnitInfo.text = "[%s] %s HP:%d/%d ATK:%d DEF:%d RES:%d SPD:%d DEX:%d LCK:%d" % [
+			unit_type, unit.name, unit.hp, unit.max_hp, unit.atk, unit.def, unit.res, unit.spd, unit.dex, unit.lck
 		]
 	else:
 		$VBoxContainer/UnitInfo.text = "ユニットを選択してください"
