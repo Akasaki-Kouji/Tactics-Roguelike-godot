@@ -136,8 +136,26 @@ func create_tile(x: int, y: int) -> Button:
 		var unit = game_manager.units[unit_index]
 		button.text = unit.name[0] if unit.name.length() > 0 else "U"
 
+		# 行動済みの味方ユニットは暗く表示
+		if unit.is_player and unit.has_acted:
+			# 背景を暗く
+			var acted_style = StyleBoxFlat.new()
+			acted_style.bg_color = bg_color * 0.4  # 元の色の40%の明るさ
+
+			# 選択枠線も残す
+			if is_selected:
+				acted_style.border_width_left = 4
+				acted_style.border_width_right = 4
+				acted_style.border_width_top = 4
+				acted_style.border_width_bottom = 4
+				acted_style.border_color = Color(0.3, 0.7, 1.0)
+
+			button.add_theme_stylebox_override("normal", acted_style)
+			button.add_theme_stylebox_override("hover", acted_style)
+			button.add_theme_stylebox_override("pressed", acted_style)
+			button.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))  # グレー文字
 		# テキスト色を設定
-		if is_attack_range and not unit.is_player:
+		elif is_attack_range and not unit.is_player:
 			# 攻撃可能な敵: 黄色い背景に黒文字で超強調
 			var attack_style = StyleBoxFlat.new()
 			attack_style.bg_color = Color(1.0, 0.9, 0.0)  # 黄色
