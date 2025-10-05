@@ -40,21 +40,21 @@ func display_cards():
 	print("Card 2: ", cards[2].name, " - ", cards[2].desc)
 
 	# カード1
-	var card1_button = $CardContainer/Card1
+	var card1_button = $VBoxContainer/CardContainer/Card1
 	card1_button.clip_text = false
 	var card1_text = "[%s]\n\n%s" % [cards[0].name, cards[0].desc]
 	card1_button.text = card1_text
 	apply_card_style(card1_button, cards[0].type)
 
 	# カード2
-	var card2_button = $CardContainer/Card2
+	var card2_button = $VBoxContainer/CardContainer/Card2
 	card2_button.clip_text = false
 	var card2_text = "[%s]\n\n%s" % [cards[1].name, cards[1].desc]
 	card2_button.text = card2_text
 	apply_card_style(card2_button, cards[1].type)
 
 	# カード3
-	var card3_button = $CardContainer/Card3
+	var card3_button = $VBoxContainer/CardContainer/Card3
 	card3_button.clip_text = false
 	var card3_text = "[%s]\n\n%s" % [cards[2].name, cards[2].desc]
 	card3_button.text = card3_text
@@ -109,12 +109,12 @@ func _on_card_3_pressed():
 
 func select_card(index: int):
 	selected_card = cards[index]
-	$InfoLabel.text = "カード選択: %s\nユニットを選んでください" % selected_card.name
+	$VBoxContainer/InfoLabel.text = "カード選択: %s\nユニットを選んでください" % selected_card.name
 	show_unit_selection()
 
 func show_unit_selection():
 	# ユニット選択UIを表示
-	for child in $UnitContainer.get_children():
+	for child in $VBoxContainer/UnitContainer.get_children():
 		child.queue_free()
 
 	for i in range(game_manager.units.size()):
@@ -124,7 +124,7 @@ func show_unit_selection():
 			button.custom_minimum_size = Vector2(0, 60)
 			button.text = "%s\nHP:%d/%d ATK:%d DEF:%d SPD:%d" % [unit.name, unit.hp, unit.max_hp, unit.atk, unit.def, unit.spd]
 			button.pressed.connect(_on_unit_selected.bind(i))
-			$UnitContainer.add_child(button)
+			$VBoxContainer/UnitContainer.add_child(button)
 
 func _on_unit_selected(unit_index: int):
 	selected_unit_index = unit_index
@@ -137,7 +137,7 @@ func apply_card():
 	game_manager.apply_card_to_unit(selected_unit_index, selected_card)
 
 	var unit = game_manager.units[selected_unit_index]
-	$InfoLabel.text = "%s に %s を付与しました！" % [unit.name, selected_card.name]
+	$VBoxContainer/InfoLabel.text = "%s に %s を付与しました！" % [unit.name, selected_card.name]
 
 	# 次のステージへ進む
 	await get_tree().create_timer(1.5).timeout
