@@ -72,7 +72,7 @@ func start_new_game(difficulty: Difficulty):
 	current_difficulty = difficulty
 	current_stage = 1
 	reset_units()
-	get_tree().change_scene_to_file("res://scenes/battle.tscn")
+	get_tree().change_scene_to_file("res://scenes/battle_improved.tscn")
 
 func apply_card_to_unit(unit_index: int, card_data: Dictionary):
 	if unit_index >= 0 and unit_index < units.size():
@@ -177,4 +177,4 @@ func next_stage():
 			var base_lck = int((6 + enemy_boost) * difficulty_multiplier)
 			units.append(create_unit("敵盗賊Lv%d" % current_stage, base_hp, base_atk, base_def, base_res, base_spd, base_dex, base_lck, false))
 
-	get_tree().change_scene_to_file("res://scenes/battle.tscn")
+	get_tree().change_scene_to_file("res://scenes/battle_improved.tscn")

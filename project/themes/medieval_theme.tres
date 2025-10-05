@@ -1,0 +1,76 @@
+[gd_resource type="Theme" format=3]
+
+[resource]
+
+; Medieval Europe Theme - Parchment & Brass
+; Design Tokens
+
+; === COLORS ===
+; Background
+default_color = Color(0.95, 0.92, 0.85, 1)  ; Parchment
+panel_bg = Color(0.93, 0.90, 0.82, 1)  ; Light parchment
+
+; Borders
+border_iron = Color(0.15, 0.15, 0.18, 1)  ; Black iron (inner)
+border_brass = Color(0.72, 0.58, 0.30, 1)  ; Brass (outer)
+border_focus = Color(0.85, 0.70, 0.35, 1)  ; Gold focus
+
+; Text
+text_primary = Color(0.12, 0.10, 0.08, 1)  ; Dark brown
+text_secondary = Color(0.25, 0.22, 0.18, 1)  ; Medium brown
+text_disabled = Color(0.50, 0.48, 0.45, 1)  ; Light gray
+text_inverse = Color(0.95, 0.93, 0.90, 1)  ; Light on dark
+
+; Action Colors (with icon/pattern support)
+action_move = Color(0.25, 0.45, 0.75, 1)  ; Blue
+action_attack = Color(0.85, 0.25, 0.25, 1)  ; Red
+action_danger = Color(0.90, 0.55, 0.20, 1)  ; Orange
+action_confirm = Color(0.30, 0.65, 0.55, 1)  ; Jade/Emerald
+
+; State Colors
+state_active = Color(0.30, 0.65, 0.55, 1)  ; Jade (ON)
+state_inactive = Color(0.20, 0.20, 0.23, 1)  ; Iron (OFF)
+state_hover = Color(0.88, 0.75, 0.40, 0.3)  ; Brass glow
+state_acted = Color(0.40, 0.38, 0.35, 1)  ; Darkened (acted units)
+
+; Rarity Colors
+rarity_common = Color(0.65, 0.63, 0.60, 1)  ; Gray
+rarity_rare = Color(0.30, 0.55, 0.85, 1)  ; Blue
+rarity_epic = Color(0.85, 0.70, 0.25, 1)  ; Gold
+
+; === TYPOGRAPHY ===
+; Font sizes (scaled for readability)
+font_size_h1 = 32
+font_size_h2 = 24
+font_size_h3 = 18
+font_size_body = 16
+font_size_small = 14
+font_size_tiny = 12
+
+; === SPACING ===
+spacing_xs = 4
+spacing_sm = 8
+spacing_md = 12
+spacing_lg = 16
+spacing_xl = 24
+spacing_xxl = 32
+
+; === BORDERS & CORNERS ===
+border_width_thin = 1
+border_width_normal = 2
+border_width_thick = 3
+border_width_focus = 4
+
+corner_radius_sm = 4
+corner_radius_md = 6
+corner_radius_lg = 8
+
+; === SHADOWS ===
+shadow_offset = Vector2(2, 2)
+shadow_color = Color(0, 0, 0, 0.15)
+
+; === ANIMATION ===
+; All animations respect prefers-reduced-motion
+transition_fast = 0.08  ; 80ms
+transition_normal = 0.12  ; 120ms
+pulse_scale = 1.05  ; Subtle pulse for selection

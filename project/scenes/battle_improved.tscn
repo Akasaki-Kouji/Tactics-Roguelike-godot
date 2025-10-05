@@ -1,0 +1,213 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8vqmx3ynw7a8"]
+
+[ext_resource type="Script" path="res://scripts/battle_improved.gd" id="1_battle"]
+
+[node name="Battle" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_battle")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.95, 0.92, 0.85, 1)
+
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="InfoBar" type="PanelContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="InfoBarMargin" type="MarginContainer" parent="MainLayout/InfoBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="InfoBarContent" type="HBoxContainer" parent="MainLayout/InfoBar/InfoBarMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TurnLabel" type="Label" parent="MainLayout/InfoBar/InfoBarMargin/InfoBarContent"]
+layout_mode = 2
+text = "ターン 1"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="StageLabel" type="Label" parent="MainLayout/InfoBar/InfoBarMargin/InfoBarContent"]
+layout_mode = 2
+text = "ステージ 1"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="EnemyCountLabel" type="Label" parent="MainLayout/InfoBar/InfoBarMargin/InfoBarContent"]
+layout_mode = 2
+text = "敵: 2"
+theme_override_colors/font_color = Color(0.85, 0.25, 0.25, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="Spacer" type="Control" parent="MainLayout/InfoBar/InfoBarMargin/InfoBarContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SpeedLabel" type="Label" parent="MainLayout/InfoBar/InfoBarMargin/InfoBarContent"]
+layout_mode = 2
+text = "1x"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="EndTurnButton" type="Button" parent="MainLayout/InfoBar/InfoBarMargin/InfoBarContent"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "ターン終了 [Space]"
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="BattleArea" type="HBoxContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="LeftPanel" type="VBoxContainer" parent="MainLayout/BattleArea"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="UnitInfoPanel" type="PanelContainer" parent="MainLayout/BattleArea/LeftPanel"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+
+[node name="UnitInfoMargin" type="MarginContainer" parent="MainLayout/BattleArea/LeftPanel/UnitInfoPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="UnitInfoContent" type="VBoxContainer" parent="MainLayout/BattleArea/LeftPanel/UnitInfoPanel/UnitInfoMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="UnitNameLabel" type="Label" parent="MainLayout/BattleArea/LeftPanel/UnitInfoPanel/UnitInfoMargin/UnitInfoContent"]
+layout_mode = 2
+text = "ユニット情報"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 20
+
+[node name="UnitStatsLabel" type="Label" parent="MainLayout/BattleArea/LeftPanel/UnitInfoPanel/UnitInfoMargin/UnitInfoContent"]
+layout_mode = 2
+text = "HP: --/--
+ATK: -- DEF: --
+SPD: -- DEX: --"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="ActionPanel" type="PanelContainer" parent="MainLayout/BattleArea/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ActionMargin" type="MarginContainer" parent="MainLayout/BattleArea/LeftPanel/ActionPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="ActionGrid" type="GridContainer" parent="MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="MoveButton" type="Button" parent="MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin/ActionGrid"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+text = "移動 [M]"
+disabled = true
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="AttackButton" type="Button" parent="MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin/ActionGrid"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+text = "攻撃 [A]"
+disabled = true
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="WaitButton" type="Button" parent="MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin/ActionGrid"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+text = "待機 [W]"
+disabled = true
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="CancelButton" type="Button" parent="MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin/ActionGrid"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+text = "キャンセル [Esc]"
+disabled = true
+theme_override_colors/font_color = Color(0.95, 0.93, 0.90, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="GridPanel" type="PanelContainer" parent="MainLayout/BattleArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GridMargin" type="MarginContainer" parent="MainLayout/BattleArea/GridPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="GridContainer" type="GridContainer" parent="MainLayout/BattleArea/GridPanel/GridMargin"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+columns = 8
+
+[node name="CombatPreviewPopup" type="PanelContainer" parent="."]
+visible = false
+offset_right = 300.0
+offset_bottom = 120.0
+
+[node name="PreviewMargin" type="MarginContainer" parent="CombatPreviewPopup"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="PreviewLabel" type="Label" parent="CombatPreviewPopup/PreviewMargin"]
+layout_mode = 2
+text = "戦闘予測"
+theme_override_colors/font_color = Color(0.12, 0.10, 0.08, 1)
+theme_override_font_sizes/font_size = 14
+
+[connection signal="pressed" from="MainLayout/InfoBar/InfoBarMargin/InfoBarContent/EndTurnButton" to="." method="_on_end_turn_pressed"]
+[connection signal="pressed" from="MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin/ActionGrid/MoveButton" to="." method="_on_move_button_pressed"]
+[connection signal="pressed" from="MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin/ActionGrid/AttackButton" to="." method="_on_attack_button_pressed"]
+[connection signal="pressed" from="MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin/ActionGrid/WaitButton" to="." method="_on_wait_button_pressed"]
+[connection signal="pressed" from="MainLayout/BattleArea/LeftPanel/ActionPanel/ActionMargin/ActionGrid/CancelButton" to="." method="_on_cancel_button_pressed"]
