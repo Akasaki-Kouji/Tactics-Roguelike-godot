@@ -157,14 +157,15 @@ func create_tile(x: int, y: int) -> Button:
 func _on_tile_pressed(pos: Vector2i):
 	var unit_index = grid[pos.y][pos.x]
 
-	if selected_unit == null:
-		# ユニット選択
+	# アクションモードがNONEの場合は、ユニット選択または選択切り替え
+	if current_action_mode == ActionMode.NONE:
 		if unit_index != null:
 			var unit = game_manager.units[unit_index]
 			if unit.is_player and not unit.has_acted:
+				# 別のユニットを選択（選択切り替え）
 				selected_unit = unit_index
 				selected_tile = pos
-				current_action_mode = ActionMode.NONE
+				clear_ranges()
 				update_action_buttons()
 				update_display()
 	elif current_action_mode == ActionMode.MOVE:
