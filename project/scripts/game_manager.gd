@@ -95,6 +95,31 @@ func apply_card_to_unit(unit_index: int, card_data: Dictionary):
 				unit.dex += card_data.value
 			"lck":
 				unit.lck += card_data.value
+			"balanced":
+				# 全ステータス+2（レアカード）
+				unit.max_hp += card_data.value
+				unit.hp += card_data.value
+				unit.atk += card_data.value
+				unit.def += card_data.value
+				unit.res += card_data.value
+				unit.spd += card_data.value
+				unit.dex += card_data.value
+				unit.lck += card_data.value
+			"all":
+				# 全ステータス+3（エピックカード）
+				unit.max_hp += card_data.value
+				unit.hp += card_data.value
+				unit.atk += card_data.value
+				unit.def += card_data.value
+				unit.res += card_data.value
+				unit.spd += card_data.value
+				unit.dex += card_data.value
+				unit.lck += card_data.value
+			"hero":
+				# HP+10 攻撃+5（エピックカード）
+				unit.max_hp += 10
+				unit.hp += 10
+				unit.atk += 5
 
 func next_stage():
 	current_stage += 1
