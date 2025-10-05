@@ -152,6 +152,8 @@ func create_tile(x: int, y: int) -> Button:
 		button.text = ""
 
 	button.pressed.connect(_on_tile_pressed.bind(Vector2i(x, y)))
+	button.mouse_entered.connect(_on_tile_hover.bind(Vector2i(x, y)))
+	button.mouse_exited.connect(_on_tile_hover_exit)
 	return button
 
 func _on_tile_pressed(pos: Vector2i):
@@ -200,11 +202,30 @@ func _on_tile_pressed(pos: Vector2i):
 			update_display()
 
 func _on_tile_hover(pos: Vector2i):
-	# マウスオーバー時の処理（将来実装）
-	if selected_unit != null:
-		var unit_index = grid[pos.y][pos.x]
-		if unit_index != null and pos in attack_range_tiles:
+	# マウスオーバー時の処理
+	var unit_index = grid[pos.y][pos.x]
+
+	# ユニットがいる場合、情報を表示
+	if unit_index != null:
+		var unit = game_manager.units[unit_index]
+		var unit_type = "味方" if unit.is_player else "敵"
+		$VBoxContainer/UnitInfo.text = "[%s] %s HP:%d/%d ATK:%d DEF:%d SPD:%d" % [
+			unit_type, unit.name, unit.hp, unit.max_hp, unit.atk, unit.def, unit.spd
+		]
+
+		# 選択中のユニットがいて、攻撃範囲内の敵の場合は戦闘予測も表示
+		if selected_unit != null and pos in attack_range_tiles and not unit.is_player:
 			show_combat_preview(selected_unit, unit_index)
+
+func _on_tile_hover_exit():
+	# マウスが離れたときの処理
+	# 選択中のユニットがあればその情報を表示、なければデフォルトメッセージ
+	if selected_unit != null:
+		update_unit_info()
+	else:
+		$VBoxContainer/UnitInfo.text = "ユニットを選択してください"
+	# 戦闘予測をクリア
+	hide_combat_preview()
 
 func calculate_move_range(from_pos: Vector2i):
 	move_range_tiles.clear()
